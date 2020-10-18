@@ -38,8 +38,6 @@ RUN apk add --no-cache --repository /packages \
     ruby-sablon \
     py3-aiohttp
 
-CMD ["/bin/sh"]
-
 ENV PYTHONUNBUFFERED 1
 WORKDIR /app
 USER sablon
