@@ -1,0 +1,10 @@
+version: "3.8"
+
+services:
+  sablon:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sablon:latest
+    ports:
+      - 3000:8080

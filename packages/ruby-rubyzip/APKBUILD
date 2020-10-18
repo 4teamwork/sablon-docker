@@ -1,0 +1,39 @@
+# Contributor: Thomas Buchberger <thomas.buchberger@gmail.com>
+# Maintainer: Thomas Buchberger <thomas.buchberger@gmail.com>
+pkgname=ruby-rubyzip
+_gemname=${pkgname#ruby-}
+pkgver=2.3.0
+pkgrel=0
+pkgdesc="Rubyzip is a ruby library for reading and writing zip files."
+url="https://github.com/rubyzip/rubyzip"
+arch="noarch"
+license="Ruby BSD-2-Clause"
+depends="ruby"
+options="!check"  # tests require dependencies we don't have yet
+source="$pkgname-$pkgver.tar.gz::https://github.com/$_gemname/$_gemname/archive/v$pkgver.tar.gz"
+builddir="$srcdir/$_gemname-$pkgver"
+
+build() {
+	cd "$builddir"
+	gem build $_gemname.gemspec
+}
+
+package() {
+	local gemdir="$pkgdir/$(ruby -e 'puts Gem.default_dir')"
+
+	cd "$builddir"
+	gem install --local \
+		--install-dir "$gemdir" \
+		--ignore-dependencies \
+		--no-document \
+		--verbose \
+		$_gemname
+
+	# Remove unnecessary files.
+	cd "$gemdir"
+	rm -r cache/ build_info/ doc/
+	cd gems/$_gemname-$pkgver
+	rm -r Rakefile README* TODO
+}
+
+sha512sums="da9c446aa1a3c457decdaedb387f4030f84a2b1c1c3ca14a0e8588103f95cf893812e7a146362c083aba478828ccda4b127cd0b80fa2fa09022e06ad041506bf  ruby-rubyzip-2.3.0.tar.gz"
