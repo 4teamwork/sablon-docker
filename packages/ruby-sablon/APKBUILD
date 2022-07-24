@@ -3,16 +3,24 @@
 pkgname=ruby-sablon
 _gemname=${pkgname#ruby-}
 pkgver=0.3.2
-pkgrel=0
+pkgrel=1
 pkgdesc="Sablon is a document template processor. At this time it works only with docx and MailMerge fields."
 url="https://github.com/senny/sablon"
 arch="noarch"
 license="MIT"
 depends="ruby ruby-json ruby-nokogiri ruby-rubyzip"
 options="!check"  # tests require dependencies we don't have yet
-source="$pkgname-$pkgver.tar.gz::https://github.com/senny/$_gemname/archive/v$pkgver.tar.gz
-        gemspec.patch"
+source=""
+_giturl="https://github.com/senny/sablon.git"
+_gitrev="4cdb3c4e341696032ad81689d98fa32ee24d4e09"
 builddir="$srcdir/$_gemname-$pkgver"
+
+prepare() {
+	default_prepare
+	git clone "${_giturl}" "${srcdir}/${_gemname}-${pkgver}" || return 1
+	cd "${srcdir}/${_gemname}-${pkgver}"
+	git checkout "${_gitrev}" || return 1
+}
 
 build() {
 	cd "$builddir"
@@ -37,6 +45,3 @@ package() {
 	cd gems/$_gemname-$pkgver
 	rm -r test/ misc/
 }
-
-sha512sums="b64aeb09ed50b5b7889a028f6d715ac6e6110ad464b3d96b916de8582b46952a2dbfd7e4db48e1e2d4afe89c0e6e874513f866a0227b618d1fdaef9e61f10fbe  ruby-sablon-0.3.2.tar.gz
-5465c1fe7dacafc2a8abf0263f82969cedc979d279bd5876f76f6cc95187402e6454dceb7977b4aba6cd48adcea9cf3f542688e488778227f98e4103541ce03a  gemspec.patch"
