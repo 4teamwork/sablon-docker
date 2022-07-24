@@ -1,4 +1,4 @@
-FROM alpine:3.12 as pkg-builder
+FROM alpine:3.16 as pkg-builder
 
 RUN apk -U add \
     sudo \
@@ -26,7 +26,7 @@ RUN cd ruby-sablon && \
     abuild -r
 
 
-FROM alpine:3.12
+FROM alpine:3.16
 
 RUN addgroup --system sablon \
      && adduser --system --ingroup sablon sablon
