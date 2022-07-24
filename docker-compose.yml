@@ -5,6 +5,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: sablon:latest
+    image: 4teamwork/sablon:latest
     ports:
       - 3000:8080
