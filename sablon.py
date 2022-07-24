@@ -27,7 +27,7 @@ async def sablon(request):
             'Bad request. Received content type %s instead of multipart/form-data.',
             request.content_type,
         )
-        return web.Response(status=400, text=f"Multipart request required.")
+        return web.Response(status=400, text="Multipart request required.")
 
     reader = await request.multipart()
 
@@ -78,7 +78,7 @@ async def sablon(request):
                     status=500, text=f"Document creation failed. {res.stderr}")
 
         logger.info('Bad request. No template or context provided.')
-        return web.Response(status=400, text=f"No template or context provided.")
+        return web.Response(status=400, text="No template or context provided.")
 
 
 async def save_part_to_file(part, directory):
