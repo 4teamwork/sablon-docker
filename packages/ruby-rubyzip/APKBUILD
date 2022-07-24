@@ -2,7 +2,7 @@
 # Maintainer: Thomas Buchberger <thomas.buchberger@gmail.com>
 pkgname=ruby-rubyzip
 _gemname=${pkgname#ruby-}
-pkgver=2.3.0
+pkgver=2.3.2
 pkgrel=0
 pkgdesc="Rubyzip is a ruby library for reading and writing zip files."
 url="https://github.com/rubyzip/rubyzip"
@@ -36,4 +36,6 @@ package() {
 	rm -r Rakefile README* TODO
 }
 
-sha512sums="da9c446aa1a3c457decdaedb387f4030f84a2b1c1c3ca14a0e8588103f95cf893812e7a146362c083aba478828ccda4b127cd0b80fa2fa09022e06ad041506bf  ruby-rubyzip-2.3.0.tar.gz"
+sha512sums="
+6c64e53c1f5ca530abfa22baf388f87c8cf098d81cc9c639f20903e5193cf26243fbf861ac12002ae954f026e04168d8a55beeaf3ac5542bd0618ca85a5c90de  ruby-rubyzip-2.3.2.tar.gz
+"
