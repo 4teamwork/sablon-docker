@@ -7,10 +7,10 @@ It expects a multipart/form-data upload containing a .docx document with the
 name template and a JSON part named context containing variable values.
 """
 from aiohttp import web
-import tempfile
-import os.path
-import subprocess
+import asyncio
 import logging
+import os.path
+import tempfile
 
 CHUNK_SIZE = 65536
 
@@ -45,17 +45,12 @@ async def sablon(request):
 
         if 'context' in form_data and 'template' in form_data:
             outfilename = os.path.join(temp_dir, 'output.docx')
-            try:
-                res = subprocess.run(
-                    ['sablon', form_data['template'], outfilename],
-                    input=form_data['context'],
-                    capture_output=True,
-                    text=True,
-                    timeout=request.app['config']['sablon_call_timeout'],
-                )
-            except subprocess.SubprocessError:
-                res = None
-                logger.exception('Calling sablon failed')
+
+            res = await run(
+                'sablon', form_data['template'], outfilename,
+                input=form_data['context'].encode('utf8'),
+                timeout=request.app['config']['sablon_call_timeout'],
+            )
 
             if res is not None and res.returncode == 0:
                 response = web.StreamResponse(
@@ -103,7 +98,27 @@ async def save_part_to_file(part, directory):
 
 
 async def healthcheck(request):
-    return web.Response(status=200, text=f"OK")
+    return web.Response(status=200, text="OK")
+
+
+async def run(*cmd, input=None, timeout=30):
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdin=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await asyncio.wait_for(
+            proc.communicate(input=input), timeout=timeout)
+    except asyncio.exceptions.TimeoutError:
+        logger.error('Calling %s timed out.', cmd)
+        return None
+    except Exception:
+        logger.exception('Calling %s failed', cmd)
+        return None
+
+    return proc
 
 
 def get_config():
