@@ -26,11 +26,11 @@ curl -F "template=@tests/template.docx" -F "context=@tests/context.json" http://
 
 ## Testing
 
-To execute the tests, Python 3.8 with pytest and requests is required.
+To execute the tests, Python 3.10 with pytest and requests is required.
 
 ```
-python3.8 -m venv venv
-./venv bin/activate
+python3.10 -m venv venv
+. venv/bin/activate
 pip install pytest requests
 ```
 

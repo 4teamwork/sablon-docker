@@ -7,10 +7,10 @@ It expects a multipart/form-data upload containing a .docx document with the
 name template and a JSON part named context containing variable values.
 """
 from aiohttp import web
-import tempfile
-import os.path
-import subprocess
+import asyncio
 import logging
+import os.path
+import tempfile
 
 CHUNK_SIZE = 65536
 
@@ -45,14 +45,14 @@ async def sablon(request):
 
         if 'context' in form_data and 'template' in form_data:
             outfilename = os.path.join(temp_dir, 'output.docx')
-            res = subprocess.run(
-                ['sablon', form_data['template'], outfilename],
-                input=form_data['context'],
-                capture_output=True,
-                text=True,
+
+            res = await run(
+                'sablon', form_data['template'], outfilename,
+                input=form_data['context'].encode('utf8'),
+                timeout=request.app['config']['sablon_call_timeout'],
             )
 
-            if res.returncode == 0:
+            if res is not None and res.returncode == 0:
                 response = web.StreamResponse(
                     status=200,
                     reason='OK',
@@ -73,9 +73,14 @@ async def sablon(request):
                 await response.write_eof()
                 return response
             else:
-                logger.error('Document creation failed. %s', res.stderr)
-                return web.Response(
-                    status=500, text=f"Document creation failed. {res.stderr}")
+                if res is None:
+                    logger.error('Document creation failed.')
+                    return web.Response(
+                        status=500, text="Document creation failed.")
+                else:
+                    logger.error('Document creation failed. %s', res.stderr)
+                    return web.Response(
+                        status=500, text=f"Document creation failed. {res.stderr}")
 
         logger.info('Bad request. No template or context provided.')
         return web.Response(status=400, text="No template or context provided.")
@@ -93,7 +98,39 @@ async def save_part_to_file(part, directory):
 
 
 async def healthcheck(request):
-    return web.Response(status=200, text=f"OK")
+    return web.Response(status=200, text="OK")
+
+
+async def run(*cmd, input=None, timeout=30):
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdin=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await asyncio.wait_for(
+            proc.communicate(input=input), timeout=timeout)
+    except asyncio.exceptions.TimeoutError:
+        logger.error('Calling %s timed out.', cmd)
+        return None
+    except Exception:
+        logger.exception('Calling %s failed', cmd)
+        return None
+
+    return proc
+
+
+def get_config():
+    config = {}
+
+    try:
+        sablon_call_timeout = int(os.environ.get('SABLON_CALL_TIMEOUT', '30'))
+    except (ValueError, TypeError):
+        sablon_call_timeout = 30
+    config['sablon_call_timeout'] = sablon_call_timeout
+
+    return config
 
 
 if __name__ == '__main__':
@@ -102,6 +139,8 @@ if __name__ == '__main__':
         level=logging.INFO,
     )
     app = web.Application()
+    app['config'] = get_config()
+    logger.info('Using config=%s', app['config'])
     app.add_routes([web.post('/', sablon)])
     app.add_routes([web.get('/healthcheck', healthcheck)])
     web.run_app(app)
