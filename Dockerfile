@@ -13,10 +13,11 @@ RUN mkdir -p /var/cache/distfiles && \
     echo "packager ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 WORKDIR /work
+RUN chown packager /work
 USER packager
 
-COPY --chown=packager:packager .abuild /home/packager/.abuild/
-COPY .abuild/packager-5f82cd49.rsa.pub /etc/apk/keys/
+RUN abuild-keygen -a -i -n
+
 COPY --chown=packager:packager packages/ ./
 
 RUN cd ruby-rubyzip && \
@@ -32,7 +33,7 @@ RUN addgroup --system sablon \
      && adduser --system --ingroup sablon sablon
 
 COPY --from=pkg-builder /home/packager/packages/work/ /packages/
-COPY .abuild/packager-5f82cd49.rsa.pub /etc/apk/keys/
+COPY --from=pkg-builder /home/packager/.abuild/*.pub /etc/apk/keys/
 
 RUN apk add --no-cache --repository /packages \
     ruby-sablon \
