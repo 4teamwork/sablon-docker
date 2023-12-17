@@ -1,4 +1,4 @@
-FROM alpine:3.16 as pkg-builder
+FROM alpine:3.19 as pkg-builder
 
 RUN apk -U add \
     sudo \
@@ -20,6 +20,9 @@ RUN abuild-keygen -a -i -n
 
 COPY --chown=packager:packager packages/ ./
 
+RUN cd ruby-xml-simple && \
+    abuild -r
+
 RUN cd ruby-rubyzip && \
     abuild -r
 
@@ -27,15 +30,14 @@ RUN cd ruby-sablon && \
     abuild -r
 
 
-FROM alpine:3.16
+FROM alpine:3.19
 
 RUN addgroup --system sablon \
      && adduser --system --ingroup sablon sablon
 
-COPY --from=pkg-builder /home/packager/packages/work/ /packages/
-COPY --from=pkg-builder /home/packager/.abuild/*.pub /etc/apk/keys/
-
-RUN apk add --no-cache --repository /packages \
+RUN --mount=from=pkg-builder,source=/home/packager/packages/work,target=/packages \
+    --mount=from=pkg-builder,source=/etc/apk/keys,target=/etc/apk/keys \
+    apk add --no-cache --repository /packages \
     ruby-sablon \
     py3-aiohttp
 

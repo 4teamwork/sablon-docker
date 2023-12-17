@@ -9,13 +9,19 @@ url="https://github.com/rubyzip/rubyzip"
 arch="noarch"
 license="Ruby BSD-2-Clause"
 depends="ruby"
-options="!check"  # tests require dependencies we don't have yet
+checkdepends="ruby-bundler ruby-rake ruby-minitest zip bash"
 source="$pkgname-$pkgver.tar.gz::https://github.com/$_gemname/$_gemname/archive/v$pkgver.tar.gz"
 builddir="$srcdir/$_gemname-$pkgver"
 
 build() {
 	cd "$builddir"
 	gem build $_gemname.gemspec
+}
+
+check() {
+	bundle config set --local path vendor/bundle
+	bundle install
+	bundle exec rake test
 }
 
 package() {

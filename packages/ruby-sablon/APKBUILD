@@ -9,10 +9,10 @@ url="https://github.com/senny/sablon"
 arch="noarch"
 license="MIT"
 depends="ruby ruby-json ruby-nokogiri ruby-rubyzip"
-options="!check"  # tests require dependencies we don't have yet
+checkdepends="ruby-bundler ruby-rake ruby-minitest ruby-xml-simple"
 source=""
 _giturl="https://github.com/senny/sablon.git"
-_gitrev="4cdb3c4e341696032ad81689d98fa32ee24d4e09"
+_gitrev="902184394dace4273558ec1da990463b133cdd19"
 builddir="$srcdir/$_gemname-$pkgver"
 
 prepare() {
@@ -25,6 +25,11 @@ prepare() {
 build() {
 	cd "$builddir"
 	gem build $_gemname.gemspec
+}
+
+check() {
+	rm Gemfile.lock
+	rake test
 }
 
 package() {
