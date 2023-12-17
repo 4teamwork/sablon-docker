@@ -46,13 +46,13 @@ async def sablon(request):
         if 'context' in form_data and 'template' in form_data:
             outfilename = os.path.join(temp_dir, 'output.docx')
 
-            res = await run(
+            proc, stdout, stderr = await run(
                 'sablon', form_data['template'], outfilename,
                 input=form_data['context'].encode('utf8'),
                 timeout=request.app['config']['sablon_call_timeout'],
             )
 
-            if res is not None and res.returncode == 0:
+            if proc is not None and proc.returncode == 0:
                 response = web.StreamResponse(
                     status=200,
                     reason='OK',
@@ -73,14 +73,14 @@ async def sablon(request):
                 await response.write_eof()
                 return response
             else:
-                if res is None:
+                if proc is None:
                     logger.error('Document creation failed.')
                     return web.Response(
                         status=500, text="Document creation failed.")
                 else:
-                    logger.error('Document creation failed. %s', res.stderr)
+                    logger.error('Document creation failed. %s', stderr)
                     return web.Response(
-                        status=500, text=f"Document creation failed. {res.stderr}")
+                        status=500, text=f"Document creation failed. {stderr}")
 
         logger.info('Bad request. No template or context provided.')
         return web.Response(status=400, text="No template or context provided.")
@@ -101,7 +101,7 @@ async def healthcheck(request):
     return web.Response(status=200, text="OK")
 
 
-async def run(*cmd, input=None, timeout=30):
+async def run(*cmd, input=None, timeout=30, encoding='utf8'):
     try:
         proc = await asyncio.create_subprocess_exec(
             *cmd,
@@ -118,7 +118,7 @@ async def run(*cmd, input=None, timeout=30):
         logger.exception('Calling %s failed', cmd)
         return None
 
-    return proc
+    return proc, stdout.decode(encoding), stderr.decode(encoding)
 
 
 def get_config():
