@@ -2,7 +2,7 @@
 # Maintainer: Thomas Buchberger <thomas.buchberger@gmail.com>
 pkgname=ruby-sablon
 _gemname=${pkgname#ruby-}
-pkgver=0.3.2
+pkgver=0.4.0
 pkgrel=1
 pkgdesc="Sablon is a document template processor. At this time it works only with docx and MailMerge fields."
 url="https://github.com/senny/sablon"
@@ -12,7 +12,7 @@ depends="ruby ruby-json ruby-nokogiri ruby-rubyzip"
 checkdepends="ruby-bundler ruby-rake ruby-minitest ruby-xml-simple"
 source=""
 _giturl="https://github.com/senny/sablon.git"
-_gitrev="902184394dace4273558ec1da990463b133cdd19"
+_gitrev="cc9f90b54f8c4fd38d7419f6049a37775b1c0fc0"
 builddir="$srcdir/$_gemname-$pkgver"
 
 prepare() {
