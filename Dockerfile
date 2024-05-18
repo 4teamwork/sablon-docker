@@ -1,4 +1,11 @@
-FROM alpine:3.19 as pkg-builder
+FROM alpine:3.19 as alpine-upgrader
+RUN apk upgrade --no-cache
+
+FROM scratch as alpine-upgraded
+COPY --from=alpine-upgrader / /
+CMD ["/bin/sh"]
+
+FROM alpine-upgraded as pkg-builder
 
 RUN apk -U add \
     sudo \
@@ -30,7 +37,7 @@ RUN cd ruby-sablon && \
     abuild -r
 
 
-FROM alpine:3.19
+FROM alpine-upgraded
 
 RUN addgroup --system sablon \
      && adduser --system --ingroup sablon sablon
